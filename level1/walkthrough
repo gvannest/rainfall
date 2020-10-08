@@ -1,0 +1,84 @@
+1. gdb ./level1
+
+2. disas main => we see the gets function is called. gets reads from stdin and put the content in a buffer whose address is given as argument. it stops when EOF.
+
+3. There is no check for buffer overflow in gets (cf man). Hence we can implement a bof attack.
+
+	a. First we need to explain the different step of the program here:
+
+		- First, the stack pointer, which is the top of the stack (remember the stack is growing in a decreasing order of address space) is moved to the next 8-bits
+		  aligned address (through the "and" instruction on line <+3>). This move represent 8 addresses hence 8 bytes.
+		  We can verify this by setting a breakpoint at line <+6> (address 0x08048486) and check teh values in $ebp and $esp with command `i r $ebp $esp`
+
+		- Then, the $esp stack pointer is again move by 0x50 bytes (which is 80 bytes in decimal => more than we ask for the buffer but because of memory alignment).
+		  This move makes room for our buffer stack allocation.
+		  Hence, after this operation, our stack pointer is 0x58 bytes below the base pointer $ebp wich is the start of the stack frame (88 bytes)
+
+		- Then, the preogram upload in $eax teh address which is 0x10 = 16 bytes below the $esp stack pointer and move it on the stack just before calling the gets function :
+		  This is the argument to the function call, the address of our buffer. The $esp pointer being 88 bytes above $ebp, our buffer is 88 - 16 = 72 bytes above $ebp
+
+		- Finally, when we call the function gets, it is a shortcut for 2 operations : PUSH $eip (puts value in $eip on the stack) and JUMP to function.
+		  At the start of the function, usually the value in $ebp is pushed on the stack as well, so that we can recover the beginning of the calling function stack frame when we return from the called function
+
+
+		So here is the stack when calling function gets:
+
+_________________________________________________________________________________________________________________________________________________________________________
+
+		-  
+		  value of ebp of main          <------------------------------------------------------- $esp = $ebp at start of gets call
+		-
+		  value of $eip of main (next instruction)
+		-
+		  value of $eax stored here = argument to function call = pointer to our buffer  <------  $esp before call to gets
+		-           
+		 				
+		  0x8 + 0x10 bytes for alignment
+
+		-
+		  				<------------------------------------------------------------------------ $eax before call to gets
+		  
+		  72 bytes is our buffer
+
+
+
+
+
+		-
+		  $ebp value of function which called the main (_start function)
+		-
+		  $eip value of function calling the main(), at time of calling
+
+_________________________________________________________________________________________________________________________________________________________________________
+
+		The goal here is to, by filling up the buffer (from top to bottom on the stack drawing above), erase the memory which stores the next instruction address when the main returns (the last one in my drawing $eip)
+		We should record there the address of an instruction which would give us a shell. As the setuid bit is on, we would execute this shell command with the
+		permissions of the owner of the level1 executable, which is level2!
+
+	
+	b. Finding what to put inside the buffer :
+
+		- We could write a shell code here, but when in gdb we type the command `info functions`, we get a list of all the functions inside the program.
+
+		- We can see that there is a "run" function which seems not to be called when we disasssemble the main function.
+
+		- We disassemble the run function, and notice that it does a system call with the "/bin/sh" command!
+		To see this : check at line <+46> what is at the address loaded on the stack (0x8048584) => `x/s 0x8048584`. This is the argument to the system call.
+
+		- So here we go! we have to load the address of the run function (0x08048444 => the one at the very top of the function instructions)!!
+
+
+	c. How do we do this?
+		
+		- We have to fill 72 bytes of buffer + 4 bytes which is the size of the $ebp value stored below our buffer = 76 bytes, to get to the address where the next instruction of the function calling the main is stored.
+		We can fill it with whatever we want, but let's fill it with the NOP hex value (\x90). Then we store the address of the run function (watch out : in memory it is littlen endian
+		meaning the higher bytes are on the right, the lowest on the left of the address value).
+
+		- We use python to generate the string that we will pass to our program when requested by the gets function:
+
+		(python -c 'print("\x90"*76 + "\x44\x84\x04\x08")' ; cat) | ./level1
+		(Note : the cat is to feed the pipe with the value printed by the python script)
+
+		Then we have a shell and we can:
+			cat /home/user/level2/.pass
+			53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
