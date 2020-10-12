@@ -8,7 +8,7 @@ void o(){
 	exit(1);
 }
 
-void v(void){
+void n(void){
 	char buf[520];
 	fgets(buf, 512, stdin);
 	printf(buf);
@@ -16,6 +16,6 @@ void v(void){
 }
 
 int main(void){
-	v();
+	n();
 	return 0;
 }

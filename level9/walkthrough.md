@@ -75,7 +75,7 @@ so n points to memory location **0x0804a008** and m to **0x0804a078**
 0xbffff8c4:	 "coucou"
 ```
 
-We can see that the first argument is n, and the second argument is our argv[1] (whici here as a test we set as "coucou").
+We can see that the first argument is n, and the second argument is our argv[1] (which here as a test we set as "coucou").
 
 - The setAnnotation function call `strlen` on its string argument (**ebp+0xc** in setAnnotation is **esp+0x4** in main, as eip and ebp are pushed onto the stack in between).
 - Then it gets a pointer `ptr = value of ptr + 0x4 = 0x0804a008 + 0x4 = 0x0804a00c`
@@ -98,7 +98,7 @@ But m is dereferenced two times. So at this position we will have to write an ad
 
 - THe shellcode is 45 bytes long. The address that will point to it is 4 bytes long.
 - `108 - 45 - 4 = 59 bytes` => 59 bytes of random code (we'll use the NOP opcode). Then we will erase m value with the value of the beginning of our buffer : **0x0804a00c**
-- The first address will point to somewhere randomly in the NOP suite of instructions in the buffer. As the buffer starts at **0x0804a00c**, **0x0804a01c**, whici is 16 bytes ahead, is a good candidate!
+- The first address will point to somewhere randomly in the NOP suite of instructions in the buffer. As the buffer starts at **0x0804a00c**, **0x0804a01c**, which is 16 bytes ahead, is a good candidate.
 
 Here is the exploit:
 

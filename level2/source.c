@@ -8,7 +8,7 @@ void p(void){
 	gets(buf);
 	char *p = (buf + 84);
 	uintptr_t ptr = (uintptr_t)p;
-	if ((ptr & 0xb0000000) == 0xb0000000) {
+	if ((ptr & 0xb0000000) == 0xb0000000) { // it basically checks whether the next instruction in the main funciton starts with 0xb -> it would mean it is a stack based instruction. protection
 		printf("%p \n", p);
 		exit(1);
 	} else {

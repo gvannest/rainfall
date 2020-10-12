@@ -1,6 +1,6 @@
 1. gdb ./level1
 
-2. disas main => we see the gets function is called. gets reads from stdin and put the content in a buffer whose address is given as argument. it stops when EOF.
+2. disas main => we see the gets function is called. gets reads from stdin and puts the content in a buffer whose address is given as argument. it stops when EOF.
 
 3. There is no check for buffer overflow in gets (cf man). Hence we can implement a bof attack.
 
@@ -14,7 +14,7 @@
 		  This move makes room for our buffer stack allocation.
 		  Hence, after this operation, our stack pointer is 0x58 bytes below the base pointer $ebp wich is the start of the stack frame (88 bytes)
 
-		- Then, the preogram upload in $eax teh address which is 0x10 = 16 bytes below the $esp stack pointer and move it on the stack just before calling the gets function :
+		- Then, the program upload in $eax teh address which is 0x10 = 16 bytes below the $esp stack pointer and move it on the stack just before calling the gets function :
 		  This is the argument to the function call, the address of our buffer. The $esp pointer being 88 bytes above $ebp, our buffer is 88 - 16 = 72 bytes above $ebp
 
 		- Finally, when we call the function gets, it is a shortcut for 2 operations : PUSH $eip (puts value in $eip on the stack) and JUMP to function.
@@ -71,7 +71,7 @@ ________________________________________________________________________________
 	c. How do we do this?
 		
 		- We have to fill 72 bytes of buffer + 4 bytes which is the size of the $ebp value stored below our buffer = 76 bytes, to get to the address where the next instruction of the function calling the main is stored.
-		We can fill it with whatever we want, but let's fill it with the NOP hex value (\x90). Then we store the address of the run function (watch out : in memory it is littlen endian
+		We can fill it with whatever we want, but let's fill it with the NOP hex value (\x90). Then we store the address of the run function (watch out : in memory it is little endian
 		meaning the higher bytes are on the right, the lowest on the left of the address value).
 
 		- We use python to generate the string that we will pass to our program when requested by the gets function:

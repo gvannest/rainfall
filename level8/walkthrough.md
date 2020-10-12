@@ -8,7 +8,7 @@ This pointer has an address of **0x8049aac** and a value (i.e. the address to wh
 
 This pointer has an address of **80x8049ab0** and a value of **0x804a018** (breakpoint at **0x080486b0 <+332>** right after the strdup call and check what is in eax : `i r $eax` ; the return of the strdup call))
 
-4. Finally, if the input starts with "login", then it checks if the value stored at **auth + 0x20** or **0x804a008 + 0x20** is not NULL. It is the calue stored at **auth + 0x20**!
+4. Finally, if the input starts with "login", then it checks if the value stored at **auth + 0x20** or **0x804a008 + 0x20** is not NULL. It is the value stored at **auth + 0x20**!
 
 5. Finding the flag:
 

@@ -9,13 +9,13 @@
 
 3. We see that the `main` function calls the `p` function.
 
-4. `disas p` => we see that the `gets` function is called. we know that this function does not check for buffer overflow so
-    we could use a bof here.
-    We see that the buffer given as argument starts at address `$ebp-0x4c` (cf line <+19> where this addres is loaded into $eax and then stored on the stack as argument to gets function call). This represents **76 bytes**.
-    Then at $ebp is stored the value of the stackbase pointer for the main function (which will be retrieved when getting out of p()) => you can check this by breaking before the p function call in main and check value inside $ebp `i r $ebp`, and then breaking inside the p() function and check the content at $ebp address (`i r $ebp` to get address stored in $ebp, and then `x/8wx addr`).
+4. 
+    - `disas p` => we see that the `gets` function is called. we know that this function does not check for buffer overflow so we could use a bof here.
+    - We see that the buffer given as argument starts at address `$ebp-0x4c` (cf line <+19> where this addres is loaded into $eax and then stored on the stack as argument to gets function call). This represents **76 bytes**.
+    - Then at $ebp is stored the value of the stackbase pointer for the main function (which will be retrieved when getting out of p()) => you can check this by breaking before the p function call in main and check value inside $ebp (`i r $ebp`), and then breaking inside the p() function and check the content at $ebp address (`i r $ebp` to get address stored in $ebp, and then `x/8wx addr`).
     So we have **76 + 4 = 80 bytes** before erasing the main() next instruction stored location ($eip at time of p() call).
-    With our shellcode representing 45 bytes, we have to fill up the buffer with 35 NOP bytes (`\x90`), then our sheell code, and then an address inside the NOP sequence (does not matter, the program will jump to next instruction if current instruciton is NOP).
-    Let's find the address at the beginning of our buffer : `x/20wx $ebp-0x4c`, which gives **0xbffff69c**. We can take whichever address in the range formed by this address and this address + 35 bytes. Let's take +0x10 or +16 bytes : **0xbffff6ac**
+    - With our shellcode representing 45 bytes, we have to fill up the buffer with 35 NOP bytes (`\x90`), then our sheell code, and then an address inside the NOP sequence (does not matter, the program will jump to next instruction if current instruciton is NOP).
+    - Let's find the address at the beginning of our buffer : `x/20wx $ebp-0x4c`, which gives **0xbffff69c**. We can take whichever address in the range formed by this address and this address + 35 bytes. Let's take +0x10 or +16 bytes : **0xbffff6ac**
 
 5. Let's launch our bof:
 
@@ -39,7 +39,7 @@
 
 
 7. We can see that if the address stored there is not a stack based address, the program call `strdup` with the address of our 
-    buffer as argument. `strdup` will malloc a new address memory (hence in the heap), of the size of our buffer, fill up this new memory location with the content of our buffer, and returns the address of this newly allocated memory. We can recover this new memory location with the content of our buffer : it is stored in `$eaax` register when the function returns.
+    buffer as argument. `strdup` will malloc a new address memory (hence in the heap), of the size of our buffer, fill up this new memory location with the content of our buffer, and returns the address of this newly allocated memory. We can recover this new memory location with the content of our buffer : it is stored in `$eax` register when the function returns.
     To do this, we juste set a breakpoint right after the `strdup` function call (at **0x0804853d**) and check the value stored in $eax (`i r $eax`). We find that this newly allocated buffer is stored at address **0x804a008**.
     So we have to store this address as the next instruction of the main() function ($eip of the main function) instead of the one of our buffer on the stack. Let's try our exploit with this address:
 

@@ -16,9 +16,9 @@ We can see that there is a main and f functions.
 
     - interesting things :
         * 2 calls to strcpy, which we know is vulnerable to buffer overflow
-        * 4 calls to malloc : 1st located on the stack at `esp+0x1c`; the 4 bytes memory location this pointer points to is then set to **0x1**, and the next memory location is set to the result of another malloc of 8 bytes. This seems like a struct allocation of memory. The third call to malloc is located on the stack at **esp+0x18** with the same kind of structure (but the first 4 bytes memory location is set to **0x2**)
+        * 4 calls to malloc : 1st located on the stack at `esp+0x1c`; the 4 bytes memory location this pointer points to is then set to **0x1**, and the next memory location is set to the result of another malloc of 8 bytes. This seems like a struct allocation of memory. The third call to malloc is located on the stack at **esp+0x18** with the same kind of structure (but the first 4 bytes memory location is set to **0x2**) => structure-like memory composition
         * There is a `fopen` call with arguments `/home/user/level8/.pass` and `r` : it opens the file we want and returns a stream to this file in $eax!
-        * Then fgets is called with arguments : a global pointer whose value is **0x8049960** => **The same one which is printed in the m() function!**, 0x44 bytes to be filled into this buffer, and the resulting fd of teh `fopen` function call! => so the program opens the file we want, fgets read data from this file (i.e. the flag) and stores it in a buffer at memory location **0x8049960**. Then it calls the puts function on a random string.
+        * Then fgets is called with arguments : a global pointer whose value is **0x8049960** => **The same one which is printed in the m() function!**, 0x44 bytes to be filled into this buffer, and the resulting fd of the `fopen` function call! => so the program opens the file we want, fgets read data from this file (i.e. the flag) and stores it in a buffer at memory location **0x8049960**. Then it calls the puts function on a random string.
 
     - What we have to do : call the `m()` function after `fgets` so that it will print out the buffer where the content of the `.pass` file will be located. We have to call it instead of `puts`
 
@@ -57,9 +57,10 @@ We can see that there is a main and f functions.
 
     - Payload and output:
 
-    Conclusion : argv[1] will contain 20 random characters to arrive at the memory locaiton of the 2nd pointer.
-    Then there is the memory address of the puts funciton in GOT table.
-    argv[2] will contain the address of our m() function
+    Conclusion : 
+    - argv[1] will contain 20 random characters to arrive at the memory location of the 2nd pointer.
+    - Then there is the memory address of the puts funciton in GOT table.
+    - argv[2] will contain the address of our m() function
 
     ```
     level7@RainFall:~$ ./level7 $(python -c 'print("A"*20 + "\x28\x99\x04\x08")') $(python -c 'print("\xf4\x84\x04\x08")')

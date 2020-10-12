@@ -39,13 +39,13 @@
     End of assembler dump.
     ```
 
-    - then step into printf : `si` This will have push $eip on the stack. Now we can llok at the value stored on top of the stack (at $esp), and it should be the value of the next instruction following `printf()` call (see dump above : **0x080484f8**)
+    - then step into printf : `si` This will have push $eip on the stack. Now we can look at the value stored on top of the stack (at $esp), and it should be the value of the next instruction following `printf()` call (see dump above : **0x080484f8**)
 
     ```
     Dump of assembler code for function printf@plt:
-    => 0x08048380 <+0>:	jmp    DWORD PTR ds:0x8049824
-    0x08048386 <+6>:	push   0x0
-    0x0804838b <+11>:	jmp    0x8048370
+    =>  0x08048380 <+0>:	jmp    DWORD PTR ds:0x8049824
+        0x08048386 <+6>:	push   0x0
+        0x0804838b <+11>:	jmp    0x8048370
     End of assembler dump.
     (gdb) i r $esp
     esp            0xbffff4cc	0xbffff4cc
@@ -81,7 +81,7 @@
     8. gdb loads a couple of variables onto the stack => teh stackframe is not at the same level as when running outside of gdb! offsets, memory value in data segment are the same, but not hard-coded value on the stack! So the address of o() is the same, but not the one where the next instruciton following printf() call is stored! Hence it does not work. There is probably a way to discover the size of variables loaded into the stack by gdb, but here there is a better way.
 
 
-    9. In n() memory dump above, we can see that following printf, the `exit()@plt` function is called. plt stands for `Procedure Linkage Table`. The use of the plt happens when there is a dynamic linkage to a library. The compiler does not know until runtime where the function to be called is located. So teh program says "go get this function in the table and put its address here".
+    9. In n() memory dump above, we can see that following printf, the `exit()@plt` function is called. plt stands for `Procedure Linkage Table`. The use of the plt happens when there is a dynamic linkage to a library. The compiler does not know until runtime where the function to be called is located. So the program says "go get this function in the table and put its address here".
 
         ```
             0x080484f8 <+54>:	mov    DWORD PTR [esp],0x1
@@ -102,7 +102,7 @@
 
         So here our aime is to jump at `o()` function instead of at the plt inside the `exit@plt` call!
 
-        --> We have to write the exact same number (the start of the o() function), but at a difference memory location ; **0x08049838**
+        --> We have to write the exact same number (the start of the o() function), but at a different memory location ; **0x08049838**
 
     10. Final payload:
 

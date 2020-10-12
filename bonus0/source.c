@@ -24,7 +24,7 @@ void pp(char *mainbuf){
 
 
 int main(void){
-	char sbuf[42];
+	char sbuf[50];
 	pp(sbuf);
 	puts(sbuf);
 }

@@ -15,7 +15,7 @@ Hence $eax goes there and grab the second argument (first one being the executab
 3. We can see that after the call to atoi, $eax (where the return value is located) id compared to 0x1a7 which is 423.
 
 4. if it is equal, the program does the following:
-	- call strdup on a string located at address 0x80c5348. `x/s 0x80c5348` outputs "/bin/sh". Hence it makes a copy of this string and stor it in a pointer.
+	- call strdup on a string located at address 0x80c5348. `x/s 0x80c5348` outputs "/bin/sh". Hence it makes a copy of this string and stores it in a pointer.
 	- set the current gid and uid (real, effective and saved) to the effective gid/uid of the calling process, hence level1 here.
 	- call execv => execute a shell command, here with command at 0x80c5348 = "/bin/sh". It gives a shell with level1 permissions
 
